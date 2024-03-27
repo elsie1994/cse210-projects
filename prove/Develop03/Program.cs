@@ -2,35 +2,82 @@ using System;
 using System.Collections.Generic;
 using System.Linq;
 
-class Program
+namespace ScriptureHider
 {
-    static void Main(string[] args)
+    class Program
     {
-        ScriptureRange scripture = new ScriptureRange("John 3:16", "John 3:18", new string[]
-
-        {   "For God so loved the world that he gave his only Son, that whoever believes in him should not perish but have eternal life.",
-            "For God did not send his Son into the world to condemn the world, but in order that the world might be saved through him.",
-            "Whoever believes in him is not condemned, but whoever does not believe is condemned already, because he has not believed in the name of the only Son of God." });
-
-        Console.Clear();
-        Console.WriteLine(scripture);
-
-        while (true)
+        static void Main(string[] args)
         {
-            Console.Write("Press enter to continue or type 'quit': ");
-            string input = Console.ReadLine().ToLower();
-            if (input == "quit")
+            Scripture scripture = new Scripture("John 3:16", "For God so loved the world that he gave his one and only Son, that whoever believes in him shall not perish but have eternal life.");
+
+            Console.WriteLine("Complete Scripture:");
+            scripture.Display();
+
+            while (true)
             {
-                break;
+                Console.WriteLine("Press Enter to hide more words or type 'quit' to exit.");
+                string input = Console.ReadLine();
+
+                if (input.ToLower() == "quit")
+                    break;
+
+                scripture.HideRandomWords();
+                Console.Clear();
+
+                Console.WriteLine("Partial Scripture:");
+                scripture.Display();
+
+                if (scripture.AllWordsHidden())
+                {
+                    Console.WriteLine("All words hidden. Exiting program.");
+                    break;
+                }
             }
-            Console.Clear();
-            if (!scripture.HideRandomWord())
-            {
-                Console.WriteLine("All words are now hidden. Press enter to quit.");
-                Console.ReadLine();
-                break;
-            }
-            Console.WriteLine(scripture);
         }
+    }
+
+    class Scripture
+    {
+        private List<Word> words;
+        private string reference;
+
+        public Scripture(string referenceText, string scriptureText)
+        {
+            reference = referenceText;
+            words = scriptureText.Split(' ').Select(word => new Word(word)).ToList();
+        }
+
+        public void Display()
+        {
+            Console.WriteLine($"{reference}:");
+            foreach (Word word in words)
+                Console.Write(word.IsHidden ? "***** " : word.Text + " ");
+            Console.WriteLine();
+        }
+
+        public void HideRandomWords()
+        {
+            Random rand = new Random();
+            int wordsToHide = Math.Max(1, words.Count / 4);
+
+            for (int i = 0; i < wordsToHide; i++)
+                words[rand.Next(words.Count)].Hide();
+        }
+
+        public bool AllWordsHidden() => words.All(word => word.IsHidden);
+    }
+
+    class Word
+    {
+        public string Text { get; }
+        public bool IsHidden { get; private set; }
+
+        public Word(string text)
+        {
+            Text = text;
+            IsHidden = false;
+        }
+
+        public void Hide() => IsHidden = true;
     }
 }
