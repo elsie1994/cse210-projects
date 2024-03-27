@@ -1,88 +1,83 @@
 using System;
 using System.Collections.Generic;
-using System.Threading;
+using System.Linq;
 
-namespace MindfulnessProgram
+namespace ScriptureHider
 {
     class Program
     {
         static void Main(string[] args)
         {
-            bool exit = false;
+            Scripture scripture = new Scripture("John 3:16", "For God so loved the world that he gave his one and only Son, that whoever believes in him shall not perish but have eternal life.");
 
-            while (!exit)
-            {
-                Console.Clear();
-                Console.WriteLine("Welcome to the Mindfulness Program!");
-                Console.WriteLine("Please choose an option:");
-                Console.WriteLine("1. Start program");
-                Console.WriteLine("2. About");
-                Console.WriteLine("3. Exit");
-
-                int choice = ReadIntInRange("Enter your choice: ", 1, 3);
-
-                switch (choice)
-                {
-                    case 1:
-                        MindfulnessProgram.Start();
-                        break;
-                    case 2:
-                        About();
-                        break;
-                    case 3:
-                        exit = true;
-                        break;
-                }
-            }
-        }
-
-        static void About()
-        {
-            Console.Clear();
-            Console.WriteLine("About");
-            Console.WriteLine("This program was created to help individuals practice mindfulness and focus on their mental health.");
-            Console.WriteLine("Version 1.0");
-            Console.WriteLine("Author: Peace Arikpo");
-            PauseWithAnimation(5);
-        }
-
-        static int ReadIntInRange(string prompt, int min, int max)
-        {
-            int result;
+            Console.WriteLine("Complete Scripture:");
+            scripture.Display();
 
             while (true)
             {
-                Console.Write(prompt);
+                Console.WriteLine("Press Enter to hide more words or type 'quit' to exit.");
+                string input = Console.ReadLine();
 
-                if (int.TryParse(Console.ReadLine(), out result) && result >= min && result <= max)
+                if (input.ToLower() == "quit")
+                    break;
+
+                scripture.HideRandomWords();
+                Console.Clear();
+
+                Console.WriteLine("Partial Scripture:");
+                scripture.Display();
+
+                if (scripture.AllWordsHidden())
                 {
-                    return result;
+                    Console.WriteLine("All words hidden. Exiting program.");
+                    break;
                 }
-
-                Console.WriteLine($"Invalid input. Enter a number between {min} and {max}.");
             }
-        }
-
-        static void PauseWithAnimation(int seconds)
-        {
-            Console.Write("Starting in ");
-            for (int i = seconds; i >= 1; i--)
-            {
-                Console.Write($"{i}...");
-                Thread.Sleep(1000);
-            }
-            Console.WriteLine();
         }
     }
 
-    // Placeholder for MindfulnessProgram class
-    static class MindfulnessProgram
+    class Scripture
     {
-        // Placeholder for Start method
-        public static void Start()
+        private List<Word> words;
+        private string reference;
+
+        public Scripture(string referenceText, string scriptureText)
         {
-            Console.WriteLine("Mindfulness program started.");
-            // Add your program logic here
+            reference = referenceText;
+            words = scriptureText.Split(' ').Select(word => new Word(word)).ToList();
         }
+
+        public void Display()
+        {
+            Console.WriteLine($"{reference}:");
+            foreach (Word word in words)
+                Console.Write(word.IsHidden ? "***** " : word.Text + " ");
+            Console.WriteLine();
+        }
+
+        public void HideRandomWords()
+        {
+            Random rand = new Random();
+            int wordsToHide = Math.Max(1, words.Count / 4);
+
+            for (int i = 0; i < wordsToHide; i++)
+                words[rand.Next(words.Count)].Hide();
+        }
+
+        public bool AllWordsHidden() => words.All(word => word.IsHidden);
+    }
+
+    class Word
+    {
+        public string Text { get; }
+        public bool IsHidden { get; private set; }
+
+        public Word(string text)
+        {
+            Text = text;
+            IsHidden = false;
+        }
+
+        public void Hide() => IsHidden = true;
     }
 }
